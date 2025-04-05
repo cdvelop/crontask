@@ -9,11 +9,24 @@ import (
 )
 
 func main() {
-	// Registrar funciones en JS
+	// register the functions to be called from JavaScript
 	js.Global().Set("addCronJob", js.FuncOf(addCronJob))
+	js.Global().Set("loadCronTasks", js.FuncOf(loadCronTasks))
 
-	// Mantener el programa en ejecución
+	// Try to load default config
+	loadDefaultConfig()
+
+	// maintain the program running
 	select {}
+}
+
+func loadDefaultConfig() {
+	// Try to load from default locations
+	adapter, err := crontask.AddNewTasks("crontasks.yml")
+	if err == nil {
+		adapter.ScheduleAllTasks()
+		js.Global().Call("console.log", "Cron tasks loaded from default config")
+	}
 }
 
 func addCronJob(this js.Value, args []js.Value) any {
@@ -23,7 +36,7 @@ func addCronJob(this js.Value, args []js.Value) any {
 	}
 
 	if len(args) < 2 {
-		return "Se requieren 2 argumentos: schedule y callback"
+		return "required minimum 2 arguments: schedule and callback function eg: addCronJob('* * * * *', function() { console.log('Hello World') })"
 	}
 
 	schedule := args[0].String()
@@ -38,4 +51,22 @@ func addCronJob(this js.Value, args []js.Value) any {
 	}
 
 	return nil
+}
+
+func loadCronTasks(this js.Value, args []js.Value) any {
+	if len(args) < 1 {
+		return "Se requiere la ruta del archivo de tareas"
+	}
+
+	configPath := args[0].String()
+	adapter, err := crontask.AddNewTasks(configPath)
+	if err != nil {
+		return err.Error()
+	}
+
+	if err := adapter.ScheduleAllTasks(); err != nil {
+		return err.Error()
+	}
+
+	return "Tareas programadas correctamente"
 }

@@ -5,6 +5,16 @@ import "errors"
 type cronAdapter interface {
 	AddJob(schedule string, fn any, args ...any) error
 	GetTasksFromPath(tasksPath ...string) ([]Tasks, error)
+	ExecuteCmd(cmd Task) error
+}
+
+type Tasks []Task
+
+type Task struct {
+	Name     string `yaml:"name"`     // eg: "Backup system"
+	Schedule string `yaml:"schedule"` // eg: "0 7 * * 1,4" (2 times a week, monday and thursday)
+	Command  string `yaml:"command"`  // eg: "C:\Program Files\FreeFileSync\FreeFileSync.exe"
+	Args     string `yaml:"args"`     // eg: "D:\Backup\SystemBackup.ffs_batch"
 }
 
 type cronTask struct {
@@ -41,11 +51,16 @@ func (c *cronTask) AddJob(schedule string, fn any, args ...any) error {
 	return c.adapter.AddJob(schedule, fn, args...)
 }
 
-type Tasks []Task
-
-type Task struct {
-	Name     string `yaml:"name"`     // eg: "Backup system"
-	Schedule string `yaml:"schedule"` // eg: "0 7 * * 1,4" (2 times a week, monday and thursday)
-	Command  string `yaml:"command"`  // eg: "C:\Program Files\FreeFileSync\FreeFileSync.exe"
-	Args     string `yaml:"args"`     // eg: "D:\Backup\SystemBackup.ffs_batch"
+// UpdateInterface adds interface to check for default config and schedule tasks
+func (c *cronTask) ScheduleAllTasks() error {
+	for _, task := range c.tasks {
+		taskCopy := task // Create a copy to avoid closure issues
+		err := c.AddJob(task.Schedule, func() {
+			c.adapter.ExecuteCmd(taskCopy)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

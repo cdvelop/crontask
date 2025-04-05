@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/mileusna/crontab"
-	"gopkg.in/yaml.v3"
 )
 
 type crontabAdapter struct {
@@ -29,6 +29,7 @@ func (a *crontabAdapter) AddJob(schedule string, fn any, args ...any) error {
 	}
 	return a.ctab.AddJob(schedule, jobFunc, args...)
 }
+
 func (a crontabAdapter) GetTasksFromPath(tasksPath ...string) ([]Tasks, error) {
 	filePath := ""
 	if len(tasksPath) > 0 {
@@ -39,20 +40,44 @@ func (a crontabAdapter) GetTasksFromPath(tasksPath ...string) ([]Tasks, error) {
 		return nil, nil
 	}
 
+	// Read file contents
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	var tasksCmd []Tasks
-	if err := yaml.Unmarshal(data, &tasksCmd); err != nil {
+	// Parse YAML data
+	parser := YAMLParser{}
+	tasks, err := parser.ParseYAML(data)
+	if err != nil {
 		return nil, err
 	}
 
-	return tasksCmd, nil
+	// Wrap in Tasks slice to maintain compatibility
+	return []Tasks{tasks}, nil
 }
 
 func (a *crontabAdapter) ExecuteCmd(cmd Task) error {
 	command := exec.Command(cmd.Command, cmd.Args)
 	return command.Run()
+}
+
+// Check for default configuration file in current directory
+func GetDefaultConfigPath() string {
+	// Try current directory first
+	if _, err := os.Stat("crontasks.yml"); err == nil {
+		return "crontasks.yml"
+	}
+
+	// Try executable directory next
+	exePath, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Dir(exePath)
+		defaultPath := filepath.Join(exeDir, "crontasks.yml")
+		if _, err := os.Stat(defaultPath); err == nil {
+			return defaultPath
+		}
+	}
+
+	return ""
 }
