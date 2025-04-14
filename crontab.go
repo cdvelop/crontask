@@ -1,8 +1,6 @@
 package crontask
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"reflect"
 	"regexp"
@@ -80,25 +78,25 @@ func (c *crontab) AddJob(schedule string, fn interface{}, args ...interface{}) e
 	}
 
 	if fn == nil || reflect.ValueOf(fn).Kind() != reflect.Func {
-		return errors.New("cron job must be func()")
+		return newErr("cron job must be func()")
 	}
 
 	fnType := reflect.TypeOf(fn)
 	if len(args) != fnType.NumIn() {
-		return errors.New("number of func() params and number of provided params doesn't match")
+		return newErr("number of func() params and number of provided params doesn't match")
 	}
 
-	for i := 0; i < fnType.NumIn(); i++ {
+	for i := range fnType.NumIn() {
 		a := args[i]
 		t1 := fnType.In(i)
 		t2 := reflect.TypeOf(a)
 
 		if t1 != t2 {
 			if t1.Kind() != reflect.Interface {
-				return errors.New("Param with index %d shold be `%s` not `%s`", i, t1, t2)
+				return newErr("Param with index", i, "shold be", t1, "not", t2)
 			}
 			if !t2.Implements(t1) {
-				return errors.New("Param with index %d of type `%s` doesn't implement interface `%s`", i, t2, t1)
+				return newErr("Param with index", i, "of type", t2, "doesn't implement interface", t1)
 			}
 		}
 	}
@@ -224,7 +222,7 @@ func parseSchedule(s string) (*job, error) {
 	s = matchSpaces.ReplaceAllLiteralString(s, " ")
 	parts := strings.Split(s, " ")
 	if len(parts) != 5 {
-		return j, errors.New("Schedule string must have five components like * * * * *")
+		return j, newErr("Schedule string must have five components like * * * * *")
 	}
 
 	j.min, err = parsePart(parts[0], 0, 59)
@@ -288,10 +286,10 @@ func parsePart(s string, min, max int) (map[int]struct{}, error) {
 				localMin, _ = strconv.Atoi(rng[1])
 				localMax, _ = strconv.Atoi(rng[2])
 				if localMin < min || localMax > max {
-					return nil, errors.New("Out of range for %s in %s. %s must be in range %d-%d", rng[1], s, rng[1], min, max)
+					return nil, newErr("Out of range for", rng[1], "in", s, rng[1], "must be in range", min, "-", max)
 				}
 			} else {
-				return nil, errors.New("Unable to parse %s part in %s", matches[1], s)
+				return nil, newErr("Unable to parse", matches[1], "part in", s)
 			}
 		}
 		n, _ := strconv.Atoi(matches[2])
@@ -308,23 +306,23 @@ func parsePart(s string, min, max int) (map[int]struct{}, error) {
 			localMin, _ := strconv.Atoi(rng[1])
 			localMax, _ := strconv.Atoi(rng[2])
 			if localMin < min || localMax > max {
-				return nil, errors.New("Out of range for %s in %s. %s must be in range %d-%d", x, s, x, min, max)
+				return nil, newErr("Out of range for", x, "in", s, x, "must be in range", min, "-", max)
 			}
 			for i := localMin; i <= localMax; i++ {
 				r[i] = struct{}{}
 			}
 		} else if i, err := strconv.Atoi(x); err == nil {
 			if i < min || i > max {
-				return nil, errors.New("Out of range for %d in %s. %d must be in range %d-%d", i, s, i, min, max)
+				return nil, newErr("Out of range for", i, "in", s, i, "must be in range", min, "-", max)
 			}
 			r[i] = struct{}{}
 		} else {
-			return nil, errors.New("Unable to parse %s part in %s", x, s)
+			return nil, newErr("Unable to parse", x, "part in", s)
 		}
 	}
 
 	if len(r) == 0 {
-		return nil, errors.New("Unable to parse " + s)
+		return nil, newErr("Unable to parse", s)
 	}
 
 	return r, nil

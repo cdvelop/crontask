@@ -3,7 +3,6 @@
 package crontask
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 )
@@ -21,7 +20,7 @@ type nativeAdapter struct {
 func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
 	jobFunc, ok := fn.(func())
 	if !ok {
-		return errors.New("invalid function type")
+		return newErr("invalid function type")
 	}
 	return a.ctab.AddJob(schedule, jobFunc, args...)
 }

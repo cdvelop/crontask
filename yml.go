@@ -2,7 +2,6 @@ package crontask
 
 import (
 	"bytes"
-	"errors"
 	"regexp"
 )
 
@@ -12,7 +11,7 @@ type ymlParser struct{}
 // ParseYAML parses YAML content bytes into Tasks
 func (p ymlParser) ParseYAML(data []byte) (Tasks, error) {
 	if len(bytes.TrimSpace(data)) == 0 {
-		return nil, errors.New("empty YAML content")
+		return nil, newErr("empty YAML content")
 	}
 
 	// Parse YAML content with regex for best performance
@@ -55,10 +54,9 @@ func (p ymlParser) parseWithRegex(data []byte) (Tasks, error) {
 			tasks = append(tasks, task)
 		}
 	}
-
 	// Check if we found any tasks
 	if len(tasks) == 0 {
-		return nil, errors.New("no valid tasks found in YAML")
+		return nil, newErr("no valid tasks found in YAML")
 	}
 
 	return tasks, nil

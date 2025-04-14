@@ -3,8 +3,6 @@
 package crontask
 
 import (
-	"errors"
-	"strconv"
 	"strings"
 	"syscall/js"
 )
@@ -61,10 +59,9 @@ func (a *wasmAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 	xhr := js.Global().Get("XMLHttpRequest").New()
 	xhr.Call("open", "GET", filePath, false)
 	xhr.Call("send")
-
 	status := xhr.Get("status").Int()
 	if status != 200 {
-		return nil, errors.New("failed to fetch YAML config: HTTP " + strconv.Itoa(status))
+		return nil, newErr("failed to fetch YAML config: HTTP ", status)
 	}
 
 	yamlText := xhr.Get("responseText").String()

@@ -1,12 +1,11 @@
 package crontask
 
 import (
-	"errors"
 	"testing"
 )
 
 func TestErrAllTypes(t *testing.T) {
-	// Call the newErr method with various types
+	// Call the newErr method with various types	e := newErr(
 	e := newErr(
 		"stringTest",
 		[]string{"array", "of", "strings"},
@@ -14,7 +13,7 @@ func TestErrAllTypes(t *testing.T) {
 		42,
 		3.14,
 		true,
-		errors.New("customError"),
+		newErr("customError"),
 	)
 
 	expected := "stringTest array of strings: 42 3.14 true customError"

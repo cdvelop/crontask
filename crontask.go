@@ -1,7 +1,5 @@
 package crontask
 
-import "errors"
-
 type cronAdapter interface {
 	AddJob(schedule string, fn any, args ...any) error
 	GetTasksFromPath(tasksPath string) ([]Tasks, error)
@@ -53,7 +51,7 @@ func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
 
 	ts, err = a.GetTasksFromPath(pathTasks)
 	if err != nil {
-		return nil, errors.New("NewCronTaskEngine: " + err.Error())
+		return nil, newErr("NewCronTaskEngine:", err)
 	}
 
 	c := &CronTaskEngine{
