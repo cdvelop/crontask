@@ -6,6 +6,36 @@ import (
 	"time"
 )
 
+func myFunc() {
+	println("Helo, world")
+}
+
+func myFunc2(s string, n int) {
+	println("We have params here, string `", s, "` and number ", n)
+}
+
+func myFuncStruct(m MyTypeInterface) {
+	println("Custom type as param")
+}
+
+func myFuncInterface(i Foo) {
+	i.Bar()
+}
+
+type Foo interface {
+	Bar() string
+}
+
+type MyTypeNoInterface struct {
+	ID   int
+	Name string
+}
+
+type MyTypeInterface struct {
+	ID   int
+	Name string
+}
+
 func TestJobError(t *testing.T) {
 
 	ctab := newCrontab()
