@@ -6,11 +6,11 @@ import (
 	"regexp"
 )
 
-// YAMLParser handles parsing of YAML content for both frontend and backend
-type YAMLParser struct{}
+// ymlParser handles parsing of YAML content for both frontend and backend
+type ymlParser struct{}
 
 // ParseYAML parses YAML content bytes into Tasks
-func (p YAMLParser) ParseYAML(data []byte) (Tasks, error) {
+func (p ymlParser) ParseYAML(data []byte) (Tasks, error) {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil, errors.New("empty YAML content")
 	}
@@ -20,7 +20,7 @@ func (p YAMLParser) ParseYAML(data []byte) (Tasks, error) {
 }
 
 // parseWithRegex uses regular expressions to extract tasks from YAML formats
-func (p YAMLParser) parseWithRegex(data []byte) (Tasks, error) {
+func (p ymlParser) parseWithRegex(data []byte) (Tasks, error) {
 	var tasks []Task
 
 	// Pattern for a task with quoted or unquoted values

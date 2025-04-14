@@ -22,15 +22,15 @@ func main() {
 
 func loadDefaultConfig() {
 	// Try to load from default locations
-	adapter, err := crontask.AddNewTasks("crontasks.yml")
+	engine, err := crontask.NewCronTaskEngine()
 	if err == nil {
-		adapter.ScheduleAllTasks()
+		engine.ScheduleAllTasks()
 		js.Global().Call("console.log", "Cron tasks loaded from default config")
 	}
 }
 
 func addCronJob(this js.Value, args []js.Value) any {
-	adapter, err := crontask.AddNewTasks()
+	engine, err := crontask.NewCronTaskEngine()
 	if err != nil {
 		return err.Error()
 	}
@@ -42,7 +42,7 @@ func addCronJob(this js.Value, args []js.Value) any {
 	schedule := args[0].String()
 	callback := args[1]
 
-	err = adapter.AddJob(schedule, func() {
+	err = engine.AddJob(schedule, func() {
 		callback.Invoke()
 	})
 
@@ -59,12 +59,12 @@ func loadCronTasks(this js.Value, args []js.Value) any {
 	}
 
 	configPath := args[0].String()
-	adapter, err := crontask.AddNewTasks(configPath)
+	engine, err := crontask.NewCronTaskEngine(configPath)
 	if err != nil {
 		return err.Error()
 	}
 
-	if err := adapter.ScheduleAllTasks(); err != nil {
+	if err := engine.ScheduleAllTasks(); err != nil {
 		return err.Error()
 	}
 

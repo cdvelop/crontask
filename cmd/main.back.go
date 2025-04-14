@@ -10,22 +10,16 @@ import (
 )
 
 func main() {
-	// Check for default config file
-	configPath := crontask.GetDefaultConfigPath()
 
-	cron, err := crontask.AddNewTasks(configPath)
+	cron, err := crontask.NewCronTaskEngine()
 	if err != nil {
 		fmt.Println("Error initializing cron:", err)
 		return
 	}
 
 	// Schedule tasks from config file if any
-	if configPath != "" {
-		if err := cron.ScheduleAllTasks(); err != nil {
-			fmt.Println("Error scheduling tasks:", err)
-		} else {
-			fmt.Println("Tasks scheduled from", configPath)
-		}
+	if err := cron.ScheduleAllTasks(); err != nil {
+		fmt.Println("Error scheduling tasks:", err)
 	}
 
 	// Add programmatic tasks

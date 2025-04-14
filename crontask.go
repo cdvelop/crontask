@@ -4,8 +4,19 @@ import "errors"
 
 type cronAdapter interface {
 	AddJob(schedule string, fn any, args ...any) error
-	GetTasksFromPath(tasksPath ...string) ([]Tasks, error)
+	GetTasksFromPath(tasksPath string) ([]Tasks, error)
 	ExecuteCmd(cmd Task) error
+}
+
+const filePathDefault = "crontasks.yml"
+
+func getDefaultFilePathTasks(tasksPath string) string {
+	// 1.yml = min 5 characters
+	if len(tasksPath) >= 5 {
+		return tasksPath
+	}
+
+	return filePathDefault
 }
 
 type Tasks []Task
@@ -17,25 +28,35 @@ type Task struct {
 	Args     string `yaml:"args"`     // eg: "D:\Backup\SystemBackup.ffs_batch"
 }
 
-type cronTask struct {
+type CronTaskEngine struct {
 	adapter cronAdapter
 	tasks   []Task
 }
 
+// NewCronTaskEngine creates a new CronTaskEngine instance.
+// It automatically selects the appropriate adapter based on the build environment.
+// If tasksPath is provided, it will try to load tasks from that path.
 // Example of tasksPath: "C:/tasks/tasks.yaml" or "/etc/tasks/tasks.yaml"
-// The tasksPath parameter is used to load tasks from a YAML file
-func newCronTask(a cronAdapter, tasksPath ...string) (*cronTask, error) {
+// default: "crontasks.yml"
+func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
+	// The adapter initialization is handled by build-specific files
+	a := newCronAdapter()
+
 	var ts []Tasks
 	var err error
 
-	if len(tasksPath) > 0 {
-		ts, err = a.GetTasksFromPath(tasksPath[0])
-		if err != nil {
-			return nil, errors.New("newCronTask " + err.Error())
-		}
+	pathTasks := "crontasks.yml"
+
+	if len(tasksPath) > 0 && tasksPath[0] != "" {
+		pathTasks = tasksPath[0]
 	}
 
-	c := &cronTask{
+	ts, err = a.GetTasksFromPath(pathTasks)
+	if err != nil {
+		return nil, errors.New("NewCronTaskEngine: " + err.Error())
+	}
+
+	c := &CronTaskEngine{
 		adapter: a,
 		tasks:   make([]Task, 0),
 	}
@@ -47,12 +68,13 @@ func newCronTask(a cronAdapter, tasksPath ...string) (*cronTask, error) {
 	return c, nil
 }
 
-func (c *cronTask) AddJob(schedule string, fn any, args ...any) error {
+// AddJob adds a new scheduled job to the cron task
+func (c *CronTaskEngine) AddJob(schedule string, fn any, args ...any) error {
 	return c.adapter.AddJob(schedule, fn, args...)
 }
 
-// UpdateInterface adds interface to check for default config and schedule tasks
-func (c *cronTask) ScheduleAllTasks() error {
+// ScheduleAllTasks schedules all loaded tasks to be executed according to their schedule
+func (c *CronTaskEngine) ScheduleAllTasks() error {
 	for _, task := range c.tasks {
 		taskCopy := task // Create a copy to avoid closure issues
 		err := c.AddJob(task.Schedule, func() {

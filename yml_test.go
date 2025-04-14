@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestYAMLParser_ParseYAML(t *testing.T) {
+func TestYmlParser(t *testing.T) {
 	tests := []struct {
 		name    string
 		yaml    string
@@ -82,7 +82,7 @@ tasks:
 		},
 	}
 
-	parser := YAMLParser{}
+	parser := ymlParser{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
