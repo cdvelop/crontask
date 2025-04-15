@@ -62,7 +62,7 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 
 	ts, err := a.GetTasksFromPath(fullPath)
 	if err != nil {
-		c.logger("no task from path:", fullPath)
+		c.logger("no task from path:", fullPath, err)
 	} else {
 		for _, t := range ts {
 			c.tasks = append(c.tasks, t...)

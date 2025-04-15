@@ -5,6 +5,8 @@ package crontask
 import (
 	"os"
 	"os/exec"
+
+	"github.com/goccy/go-yaml"
 )
 
 // Inicializador específico para entornos no-WASM
@@ -40,21 +42,27 @@ func (a *nativeAdapter) GetBasePath() string {
 }
 
 func (a *nativeAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
-
 	// Read file contents
 	data, err := os.ReadFile(tasksPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse YAML data
-	parser := ymlParser{}
-	tasks, err := parser.ParseYAML(data)
+	// Parse YAML data using go-yaml
+	var tasks []Task
+	err = yaml.Unmarshal(data, &tasks)
 	if err != nil {
-		return nil, err
+		// Try to parse with wrapper (tasks: [...])
+		var wrapper struct {
+			Tasks []Task `yaml:"tasks"`
+		}
+		err2 := yaml.Unmarshal(data, &wrapper)
+		if err2 != nil || len(wrapper.Tasks) == 0 {
+			return nil, err // return original error
+		}
+		tasks = wrapper.Tasks
 	}
 
-	// Wrap in Tasks slice to maintain compatibility
 	return []Tasks{tasks}, nil
 }
 
