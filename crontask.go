@@ -20,15 +20,23 @@ type Task struct {
 type CronTaskEngine struct {
 	adapter cronAdapter
 	tasks   []Task
+	logger  func(...any) // Logger function
 }
 
 // NewCronTaskEngine creates a new CronTaskEngine instance.
 // It automatically selects the appropriate adapter based on the build environment.
+// The logger parameter is a function that will be used for logging messages.
 // If tasksPath is provided, it will try to load tasks from that path.
-// Example NewCronTaskEngine("tasks/tasks.yaml) default: "crontasks.yml"
-func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
+// Example: NewCronTaskEngine(log.Printf, "tasks/tasks.yaml") default: "crontasks.yml"
+func NewCronTaskEngine(logger func(...any), tasksPath ...string) (*CronTaskEngine, error) {
 	// The adapter initialization is handled by build-specific files
 	a := newCronAdapter()
+
+	c := &CronTaskEngine{
+		adapter: a,
+		tasks:   make([]Task, 0),
+		logger:  logger,
+	}
 
 	var ts []Tasks
 	var err error
@@ -41,16 +49,11 @@ func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
 
 	ts, err = a.GetTasksFromPath(pathTasks)
 	if err != nil {
-		return nil, newErr("NewCronTaskEngine:", err)
-	}
-
-	c := &CronTaskEngine{
-		adapter: a,
-		tasks:   make([]Task, 0),
-	}
-
-	for _, t := range ts {
-		c.tasks = append(c.tasks, t...)
+		c.logger("Error loading tasks from path:", pathTasks, err)
+	} else {
+		for _, t := range ts {
+			c.tasks = append(c.tasks, t...)
+		}
 	}
 
 	return c, nil
@@ -63,6 +66,11 @@ func (c *CronTaskEngine) AddJob(schedule string, fn any, args ...any) error {
 
 // ScheduleAllTasks schedules all loaded tasks to be executed according to their schedule
 func (c *CronTaskEngine) ScheduleAllTasks() error {
+
+	if len(c.tasks) == 0 {
+		return newErr("no tasks to schedule")
+	}
+
 	for _, task := range c.tasks {
 		taskCopy := task // Create a copy to avoid closure issues
 		err := c.AddJob(task.Schedule, func() {

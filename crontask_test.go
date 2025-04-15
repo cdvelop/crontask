@@ -23,13 +23,13 @@ func TestCronTaskEngine(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
-	defer os.RemoveAll(testDir) // Clean up after the test
+	defer os.RemoveAll(testDirPath) // Clean up after the test
 
 	// Full path to the test file
 	testFilePath := filepath.Join(testDirPath, testFileName)
 
 	// Create a new CronTaskEngine
-	cron, err := NewCronTaskEngine()
+	cron, err := NewCronTaskEngine(t.Log)
 	if err != nil {
 		t.Fatalf("Failed to create CronTaskEngine: %v", err)
 	}

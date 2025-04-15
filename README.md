@@ -13,3 +13,6 @@ const (
 	// once_year = "*/2 * * * *" // test 3 min año
 	// two_days_week = "*/1 * * * *" //test cada 1 min
 )
+
+este proyecto no seria posible
+- github.com/mileusna/crontab

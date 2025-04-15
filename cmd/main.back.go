@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/cdvelop/crontask"
@@ -11,7 +12,7 @@ import (
 
 func main() {
 
-	cron, err := crontask.NewCronTaskEngine()
+	cron, err := crontask.NewCronTaskEngine(log.Println)
 	if err != nil {
 		fmt.Println("Error initializing cron:", err)
 		return
