@@ -97,13 +97,21 @@ func (a *nativeAdapter) ExecuteCmd(cmd Task) error {
 		}
 	}
 
-	// Log the exact command being executed
-	fmt.Printf("Executing command: %s %v\n", cmd.Command, args)
+	// Expand environment variables in command and args
+	command := os.ExpandEnv(cmd.Command)
+	expandedArgs := make([]string, len(args))
+	for i, arg := range args {
+		expandedArgs[i] = os.ExpandEnv(arg)
+	}
 
-	command := exec.Command(cmd.Command, args...)
+	// Log the exact command being executed after expansion
+	fmt.Printf("Executing command: %s %v\n", command, expandedArgs)
+
+	// Use exec.Command directly
+	execCmd := exec.Command(command, expandedArgs...)
 
 	// Capture command output for better debugging
-	output, err := command.CombinedOutput()
+	output, err := execCmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("Command execution failed: %v\nOutput: %s\n", err, string(output))
 		return err

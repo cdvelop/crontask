@@ -15,7 +15,7 @@ func main() {
 	// - Load tasks from "crontasks.yml"
 	// - Schedule all tasks
 	// - Log operations
-	cron := crontask.NewCronTaskEngine(crontask.Config{})
+	cron := crontask.NewCronTaskEngine()
 
 	// Add a programmatic task if needed
 	err := cron.AddTaskSchedule("* * * * *", func() {
