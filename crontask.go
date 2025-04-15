@@ -100,3 +100,13 @@ func (c *CronTaskEngine) ScheduleAllTasks() error {
 func (c *CronTaskEngine) RunAll() {
 	c.adapter.RunAll()
 }
+
+// ExecuteTask executes a specific task by its name
+func (c *CronTaskEngine) ExecuteTask(taskName string) error {
+	for _, task := range c.tasks {
+		if task.Name == taskName {
+			return c.adapter.ExecuteCmd(task)
+		}
+	}
+	return newErr("task not found: " + taskName)
+}
