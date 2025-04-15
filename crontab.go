@@ -69,7 +69,7 @@ func new(t time.Duration) *crontab {
 // * fn is not function
 //
 // * Provided args don't match the number and/or the type of fn args
-func (c *crontab) AddJob(schedule string, fn interface{}, args ...interface{}) error {
+func (c *crontab) AddJob(schedule string, fn any, args ...any) error {
 	j, err := parseSchedule(schedule)
 	c.Lock()
 	defer c.Unlock()
@@ -119,7 +119,7 @@ func (c *crontab) AddJob(schedule string, fn interface{}, args ...interface{}) e
 // * fn is not function
 //
 // * Provided args don't match the number and/or the type of fn args
-func (c *crontab) MustAddJob(schedule string, fn interface{}, args ...interface{}) {
+func (c *crontab) MustAddJob(schedule string, fn any, args ...any) {
 	if err := c.AddJob(schedule, fn, args...); err != nil {
 		panic(err)
 	}

@@ -31,18 +31,17 @@ func (a *wasmAdapter) AddJob(schedule string, fn any, args ...any) error {
 }
 
 func (a *wasmAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
-	filePath := getDefaultFilePathTasks(tasksPath)
 
 	// If path doesn't start with http or https, assume it's relative to current path
 	// or if it begins with "/" assume it's relative to domain root
-	if !strings.HasPrefix(filePath, "http://") && !strings.HasPrefix(filePath, "https://") {
+	if !strings.HasPrefix(tasksPath, "http://") && !strings.HasPrefix(tasksPath, "https://") {
 		// Get current location from window.location
 		location := js.Global().Get("window").Get("location")
 		origin := location.Get("origin").String()
 
-		if strings.HasPrefix(filePath, "/") {
+		if strings.HasPrefix(tasksPath, "/") {
 			// Absolute path from domain root
-			filePath = origin + filePath
+			tasksPath = origin + tasksPath
 		} else {
 			// Relative path from current directory
 			pathname := location.Get("pathname").String()
@@ -51,13 +50,13 @@ func (a *wasmAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 			if lastSlash > 0 {
 				pathname = pathname[:lastSlash+1]
 			}
-			filePath = origin + pathname + filePath
+			tasksPath = origin + pathname + tasksPath
 		}
 	}
 
 	// Use XMLHttpRequest for synchronous requests (since we need to return the result)
 	xhr := js.Global().Get("XMLHttpRequest").New()
-	xhr.Call("open", "GET", filePath, false)
+	xhr.Call("open", "GET", tasksPath, false)
 	xhr.Call("send")
 	status := xhr.Get("status").Int()
 	if status != 200 {

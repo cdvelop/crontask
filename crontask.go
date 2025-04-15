@@ -8,15 +8,6 @@ type cronAdapter interface {
 
 const filePathDefault = "crontasks.yml"
 
-func getDefaultFilePathTasks(tasksPath string) string {
-	// 1.yml = min 5 characters
-	if len(tasksPath) >= 5 {
-		return tasksPath
-	}
-
-	return filePathDefault
-}
-
 type Tasks []Task
 
 type Task struct {
@@ -34,8 +25,7 @@ type CronTaskEngine struct {
 // NewCronTaskEngine creates a new CronTaskEngine instance.
 // It automatically selects the appropriate adapter based on the build environment.
 // If tasksPath is provided, it will try to load tasks from that path.
-// Example of tasksPath: "C:/tasks/tasks.yaml" or "/etc/tasks/tasks.yaml"
-// default: "crontasks.yml"
+// Example NewCronTaskEngine("tasks/tasks.yaml) default: "crontasks.yml"
 func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
 	// The adapter initialization is handled by build-specific files
 	a := newCronAdapter()
@@ -43,7 +33,7 @@ func NewCronTaskEngine(tasksPath ...string) (*CronTaskEngine, error) {
 	var ts []Tasks
 	var err error
 
-	pathTasks := "crontasks.yml"
+	pathTasks := filePathDefault
 
 	if len(tasksPath) > 0 && tasksPath[0] != "" {
 		pathTasks = tasksPath[0]

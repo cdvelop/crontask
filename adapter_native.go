@@ -28,7 +28,7 @@ func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
 func (a *nativeAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 
 	// Read file contents
-	data, err := os.ReadFile(getDefaultFilePathTasks(tasksPath))
+	data, err := os.ReadFile(tasksPath)
 	if err != nil {
 		return nil, err
 	}
