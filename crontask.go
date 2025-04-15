@@ -4,7 +4,7 @@ type cronAdapter interface {
 	AddJob(schedule string, fn any, args ...any) error
 	GetTasksFromPath(tasksPath string) ([]Tasks, error)
 	ExecuteCmd(cmd Task) error
-	GetBasePath() string
+	GetBasePath() string // eg: "C:/path/to/base/"
 	RunAll()
 }
 
@@ -23,13 +23,13 @@ type Task struct {
 type Config struct {
 	Logger    func(...any) // Logger function
 	TasksPath string       // Path to tasks file, default: "crontasks.yml"
+	basePath  string       // Base path for execution and file lookup
 }
 
 type CronTaskEngine struct {
-	adapter  cronAdapter
-	tasks    []Task
-	logger   func(...any) // Logger function
-	basePath string       // Base path for execution and file lookup
+	adapter cronAdapter
+	tasks   []Task
+	logger  func(...any) // Logger function
 }
 
 // NewCronTaskEngine creates a new CronTaskEngine instance.
@@ -39,11 +39,17 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 	// The adapter initialization is handled by build-specific files
 	a := newCronAdapter()
 
+	var basePath string
+	if config.basePath != "" {
+		basePath = config.basePath
+	} else {
+		basePath = a.GetBasePath() // Get base path from adapter
+	}
+
 	c := &CronTaskEngine{
-		adapter:  a,
-		tasks:    make([]Task, 0),
-		logger:   config.Logger,
-		basePath: a.GetBasePath(), // Get base path from adapter
+		adapter: a,
+		tasks:   make([]Task, 0),
+		logger:  config.Logger,
 	}
 
 	// Set default tasks path if not provided
@@ -52,9 +58,11 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 		pathTasks = config.TasksPath
 	}
 
-	ts, err := a.GetTasksFromPath(pathTasks)
+	fullPath := basePath + pathTasks
+
+	ts, err := a.GetTasksFromPath(fullPath)
 	if err != nil {
-		c.logger("no task from path:", pathTasks)
+		c.logger("no task from path:", fullPath)
 	} else {
 		for _, t := range ts {
 			c.tasks = append(c.tasks, t...)
