@@ -11,8 +11,10 @@ const (
 	two_days_week = "0 7 * * 1,4" //2 veces a la semana lunes y jueves
 
 	// once_year = "*/2 * * * *" // test 3 min año
-	// two_days_week = "*/1 * * * *" //test cada 1 min
+	// two_days_week = "* * * * *" //test cada 1 min
 )
 
 este proyecto no seria posible
 - github.com/mileusna/crontab
+
+

@@ -15,7 +15,7 @@ func newCronAdapter() cronAdapter {
 // Adaptador para entorno WASM
 type wasmAdapter struct{}
 
-func (a *wasmAdapter) AddJob(schedule string, fn any, args ...any) error {
+func (a *wasmAdapter) AddProgramTask(schedule string, fn any, args ...any) error {
 	jsFn := js.ValueOf(fn)
 	jsArgs := make([]any, len(args))
 	for i, arg := range args {
@@ -30,7 +30,12 @@ func (a *wasmAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return nil
 }
 
-func (a *wasmAdapter) RunAll() {
+func (a *wasmAdapter) Log(args ...any) {
+	// Log to the JavaScript console
+	js.Global().Call("console", args...)
+}
+
+func (a *wasmAdapter) RunAllAdapterTasks() {
 	js.Global().Call("console", "RunAll() called in WASM environment, but not implemented.")
 }
 

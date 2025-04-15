@@ -3,6 +3,7 @@
 package crontask
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -19,7 +20,11 @@ type nativeAdapter struct {
 	ctab *crontab
 }
 
-func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
+func (a *nativeAdapter) Log(args ...any) {
+	fmt.Println(args...)
+}
+
+func (a *nativeAdapter) AddProgramTask(schedule string, fn any, args ...any) error {
 	jobFunc, ok := fn.(func())
 	if !ok {
 		return newErr("invalid function type")
@@ -27,7 +32,7 @@ func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return a.ctab.AddJob(schedule, jobFunc, args...)
 }
 
-func (a *nativeAdapter) RunAll() {
+func (a *nativeAdapter) RunAllAdapterTasks() {
 	a.ctab.RunAll()
 }
 
@@ -92,6 +97,18 @@ func (a *nativeAdapter) ExecuteCmd(cmd Task) error {
 		}
 	}
 
+	// Log the exact command being executed
+	fmt.Printf("Executing command: %s %v\n", cmd.Command, args)
+
 	command := exec.Command(cmd.Command, args...)
-	return command.Run()
+
+	// Capture command output for better debugging
+	output, err := command.CombinedOutput()
+	if err != nil {
+		fmt.Printf("Command execution failed: %v\nOutput: %s\n", err, string(output))
+		return err
+	}
+
+	fmt.Printf("Command completed successfully\nOutput: %s\n", string(output))
+	return nil
 }

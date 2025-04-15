@@ -4,35 +4,32 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/cdvelop/crontask"
 )
 
 func main() {
+	// Create a crontask engine with minimal configuration
+	// It will automatically:
+	// - Load tasks from "crontasks.yml"
+	// - Schedule all tasks
+	// - Log operations
+	cron := crontask.NewCronTaskEngine(crontask.Config{})
 
-	cron := crontask.NewCronTaskEngine(crontask.Config{
-		Logger: log.Println,
-	})
-
-	// Schedule tasks from config file if any
-	if err := cron.ScheduleAllTasks(); err != nil {
-		fmt.Println("Error scheduling tasks:", err)
-	}
-
-	// Add programmatic tasks
-	err := cron.AddJob("* * * * *", func() {
-		fmt.Println("Ejecutando tarea cada minuto:", time.Now())
+	// Add a programmatic task if needed
+	err := cron.AddTaskSchedule("* * * * *", func() {
+		fmt.Println("Executing programmatic task every minute:", time.Now())
 	})
 
 	if err != nil {
-		fmt.Println("Error al agregar job:", err)
+		fmt.Println("Error adding job:", err)
 		return
 	}
 
-	fmt.Println("iniciado")
+	fmt.Println("Cron server started at", time.Now())
+	fmt.Println("Press Ctrl+C to stop")
 
-	// Mantener el programa en ejecución
+	// Keep the program running
 	select {}
 }

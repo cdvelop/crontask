@@ -1,0 +1,4 @@
+- name: "Backup Windows"
+  schedule: "* * * * *" # every minute
+  command: "/c/Program Files/FreeFileSync/FreeFileSync.exe"
+  args: "/c/Users/$(whoami)/SyncWin/SyncSettings.ffs_batch"

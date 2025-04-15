@@ -23,8 +23,6 @@ func TestLoadTasksFromYaml(t *testing.T) {
 	// que hace el motor de tareas funcione correctamente.
 	// No incluimos separador de directorio al final ya que el motor concatena directamente
 	cron := NewCronTaskEngine(Config{
-		Logger:         t.Log,
-		TasksPath:      filePathDefault,
 		testFolderPath: testDirPath, // Sin separador al final
 	})
 

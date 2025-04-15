@@ -1,13 +1,17 @@
 package crontask
 
-import "path/filepath"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 type cronAdapter interface {
-	AddJob(schedule string, fn any, args ...any) error
+	AddProgramTask(schedule string, fn any, args ...any) error
 	GetTasksFromPath(tasksPath string) ([]Tasks, error)
 	ExecuteCmd(cmd Task) error
 	GetBasePath() string // without / eg: "path/to/base"
-	RunAll()
+	RunAllAdapterTasks()
+	Log(...any) // Logger function
 }
 
 const filePathDefault = "crontasks.yml"
@@ -23,33 +27,46 @@ type Task struct {
 
 // Config contains all configuration options for the CronTaskEngine
 type Config struct {
-	Logger         func(...any) // Logger function
-	TasksPath      string       // Path to tasks file, default: "crontasks.yml"
-	testFolderPath string       // Base path for execution and file lookup eg: "test/uc01_test", default: ""
+	TasksPath      string // Path to tasks file, default: "crontasks.yml"
+	NoAutoSchedule bool   // Set to true to disable automatic task scheduling
+	testFolderPath string // Base path for execution and file lookup eg: "test/uc01_test", default: ""
 }
 
 type CronTaskEngine struct {
 	adapter cronAdapter
 	tasks   []Task
-	logger  func(...any) // Logger function
+	Log     func(...any) // Logger function
 }
 
 // NewCronTaskEngine creates a new CronTaskEngine instance.
-// It automatically selects the appropriate adapter based on the build environment.
-// Example: NewCronTaskEngine(Config{Logger: log.Printf, TasksPath: "tasks/tasks.yaml"})
-func NewCronTaskEngine(config Config) *CronTaskEngine {
+// It automatically selects the appropriate adapter based on the build environment
+// and schedules all tasks by default.
+// Examples:
+//
+//	engine := NewCronTaskEngine()            // Uses all defaults
+//	engine := NewCronTaskEngine(Config{})    // Uses all defaults (explicit)
+//	engine := NewCronTaskEngine(Config{TasksPath: "custom.yml"}) // Custom config
+func NewCronTaskEngine(configs ...Config) *CronTaskEngine {
+	// Default config
+	config := Config{}
+
+	// Use first config if provided
+	if len(configs) > 0 {
+		config = configs[0]
+	}
+
 	// The adapter initialization is handled by build-specific files
 	a := newCronAdapter()
 
 	var testFolderPath string
 	if config.testFolderPath != "" {
-		testFolderPath = config.testFolderPath // Ensure base path ends with a separator
+		testFolderPath = config.testFolderPath
 	}
 
 	c := &CronTaskEngine{
 		adapter: a,
 		tasks:   make([]Task, 0),
-		logger:  config.Logger,
+		Log:     a.Log,
 	}
 
 	// Set default tasks path if not provided
@@ -59,13 +76,29 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 	}
 
 	fullPath := filepath.Join(a.GetBasePath(), testFolderPath, pathTasks)
+	c.Log("Loading tasks from", fullPath)
 
 	ts, err := a.GetTasksFromPath(fullPath)
 	if err != nil {
-		c.logger("no task from path:", fullPath, err)
+		c.Log("No tasks loaded from path:", fullPath, "Error:", err)
 	} else {
 		for _, t := range ts {
 			c.tasks = append(c.tasks, t...)
+		}
+		c.Log("Loaded", len(c.tasks), "tasks")
+
+		// Display loaded tasks
+		for i, task := range c.tasks {
+			c.Log(fmt.Sprintf("Task %d: %s (Schedule: %s)", i+1, task.Name, task.Schedule))
+		}
+	}
+
+	// Auto-schedule tasks unless explicitly disabled
+	if !config.NoAutoSchedule {
+		if err := c.ScheduleAllTasks(); err != nil {
+			c.Log("Error scheduling tasks:", err)
+		} else {
+			c.Log("All tasks scheduled successfully")
 		}
 	}
 
@@ -73,23 +106,27 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 }
 
 // AddJob adds a new scheduled job to the cron task
-func (c *CronTaskEngine) AddJob(schedule string, fn any, args ...any) error {
-	return c.adapter.AddJob(schedule, fn, args...)
+func (c *CronTaskEngine) AddTaskSchedule(schedule string, fn any, args ...any) error {
+	c.Log("Adding job with schedule:", schedule)
+	return c.adapter.AddProgramTask(schedule, fn, args...)
 }
 
 // ScheduleAllTasks schedules all loaded tasks to be executed according to their schedule
 func (c *CronTaskEngine) ScheduleAllTasks() error {
-
 	if len(c.tasks) == 0 {
 		return newErr("no tasks to schedule")
 	}
 
+	c.Log("Scheduling", len(c.tasks), "tasks")
 	for _, task := range c.tasks {
 		taskCopy := task // Create a copy to avoid closure issues
-		err := c.AddJob(task.Schedule, func() {
+		c.Log("Scheduling task:", task.Name, "with schedule:", task.Schedule)
+		err := c.adapter.AddProgramTask(task.Schedule, func() {
+			c.Log("Executing scheduled task:", taskCopy.Name)
 			c.adapter.ExecuteCmd(taskCopy)
 		})
 		if err != nil {
+			c.Log("Error scheduling task:", task.Name, "Error:", err)
 			return err
 		}
 	}
@@ -97,16 +134,25 @@ func (c *CronTaskEngine) ScheduleAllTasks() error {
 }
 
 // RunAll executes all scheduled tasks immediately
-func (c *CronTaskEngine) RunAll() {
-	c.adapter.RunAll()
+func (c *CronTaskEngine) RunAllTasks() {
+	c.Log("Running all scheduled tasks")
+	c.adapter.RunAllAdapterTasks()
 }
 
 // ExecuteTask executes a specific task by its name
 func (c *CronTaskEngine) ExecuteTask(taskName string) error {
+	c.Log("Executing task:", taskName)
 	for _, task := range c.tasks {
 		if task.Name == taskName {
 			return c.adapter.ExecuteCmd(task)
 		}
 	}
 	return newErr("task not found: " + taskName)
+}
+
+// GetTasks returns a copy of all loaded tasks
+func (c *CronTaskEngine) GetTasks() []Task {
+	tasksCopy := make([]Task, len(c.tasks))
+	copy(tasksCopy, c.tasks)
+	return tasksCopy
 }

@@ -136,8 +136,6 @@ func TestTaskExecution(t *testing.T) {
 
 	// Initialize the CronTaskEngine
 	cron := NewCronTaskEngine(Config{
-		Logger:         t.Log,
-		TasksPath:      filePathDefault,
 		testFolderPath: testDirPath,
 	})
 

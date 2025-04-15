@@ -31,8 +31,6 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 
 	// Create a new CronTaskEngine
 	cron := NewCronTaskEngine(Config{
-		Logger:         t.Log,
-		TasksPath:      "",
 		testFolderPath: testDirPath, // Set the base path for the cron adapter
 	})
 
@@ -42,7 +40,7 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 
 	// Add create file job
 	createCalled := false
-	err = cron.AddJob(testSchedule1, func() {
+	err = cron.AddTaskSchedule(testSchedule1, func() {
 		defer wg.Done()
 		err := createTestFile(testFilePath, testContent)
 		if err != nil {
@@ -55,7 +53,7 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 	}
 	// Add delete file job - keep it simple
 	deleteCalled := false
-	err = cron.AddJob(testSchedule2, func() {
+	err = cron.AddTaskSchedule(testSchedule2, func() {
 		// Ensure the file exists before trying to delete it
 		// Add 500ms wait to ensure file creation completes first
 		time.Sleep(500 * time.Millisecond)
@@ -86,7 +84,7 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 	}
 
 	// Execute all scheduled jobs immediately without waiting for cron schedule
-	cron.RunAll()
+	cron.RunAllTasks()
 
 	// Wait for both jobs to complete with timeout
 	done := make(chan struct{})
