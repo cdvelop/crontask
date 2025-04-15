@@ -27,8 +27,11 @@ go build -ldflags="-s -w" -o "$TEMP_FILE" ./cmd/crontask
 
 # Comprobar si el binario existe
 if [ -f "$FINAL_FILE" ]; then
-    # Comparar los archivos
-    if cmp -s "$TEMP_FILE" "$FINAL_FILE"; then
+    # Comparar los archivos usando hash SHA256 en lugar de comparación directa
+    TEMP_HASH=$(sha256sum "$TEMP_FILE" | cut -d ' ' -f 1)
+    FINAL_HASH=$(sha256sum "$FINAL_FILE" | cut -d ' ' -f 1)
+    
+    if [ "$TEMP_HASH" = "$FINAL_HASH" ]; then
         echo "No hay cambios en el binario. Manteniendo versión existente."
     else
         echo "Se detectaron cambios. Actualizando binario..."
