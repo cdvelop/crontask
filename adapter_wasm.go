@@ -30,6 +30,10 @@ func (a *wasmAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return nil
 }
 
+func (a *wasmAdapter) RunAll() {
+	js.Global().Call("console", "RunAll() called in WASM environment, but not implemented.")
+}
+
 func (a *wasmAdapter) GetBasePath() string {
 	// In WASM environments, get the base path from the window.location
 	location := js.Global().Get("window").Get("location")

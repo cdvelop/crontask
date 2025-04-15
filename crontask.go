@@ -5,6 +5,7 @@ type cronAdapter interface {
 	GetTasksFromPath(tasksPath string) ([]Tasks, error)
 	ExecuteCmd(cmd Task) error
 	GetBasePath() string
+	RunAll()
 }
 
 const filePathDefault = "crontasks.yml"
@@ -85,4 +86,9 @@ func (c *CronTaskEngine) ScheduleAllTasks() error {
 		}
 	}
 	return nil
+}
+
+// RunAll executes all scheduled tasks immediately
+func (c *CronTaskEngine) RunAll() {
+	c.adapter.RunAll()
 }

@@ -25,6 +25,10 @@ func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return a.ctab.AddJob(schedule, jobFunc, args...)
 }
 
+func (a *nativeAdapter) RunAll() {
+	a.ctab.RunAll()
+}
+
 func (a *nativeAdapter) GetBasePath() string {
 	// Get the current working directory as the base path
 	dir, err := os.Getwd()
