@@ -1,10 +1,12 @@
 package crontask
 
+import "path/filepath"
+
 type cronAdapter interface {
 	AddJob(schedule string, fn any, args ...any) error
 	GetTasksFromPath(tasksPath string) ([]Tasks, error)
 	ExecuteCmd(cmd Task) error
-	GetBasePath() string // eg: "C:/path/to/base/"
+	GetBasePath() string // without / eg: "path/to/base"
 	RunAll()
 }
 
@@ -21,9 +23,9 @@ type Task struct {
 
 // Config contains all configuration options for the CronTaskEngine
 type Config struct {
-	Logger    func(...any) // Logger function
-	TasksPath string       // Path to tasks file, default: "crontasks.yml"
-	basePath  string       // Base path for execution and file lookup
+	Logger         func(...any) // Logger function
+	TasksPath      string       // Path to tasks file, default: "crontasks.yml"
+	testFolderPath string       // Base path for execution and file lookup eg: "test/uc01_test", default: ""
 }
 
 type CronTaskEngine struct {
@@ -39,11 +41,9 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 	// The adapter initialization is handled by build-specific files
 	a := newCronAdapter()
 
-	var basePath string
-	if config.basePath != "" {
-		basePath = config.basePath
-	} else {
-		basePath = a.GetBasePath() // Get base path from adapter
+	var testFolderPath string
+	if config.testFolderPath != "" {
+		testFolderPath = config.testFolderPath // Ensure base path ends with a separator
 	}
 
 	c := &CronTaskEngine{
@@ -58,7 +58,7 @@ func NewCronTaskEngine(config Config) *CronTaskEngine {
 		pathTasks = config.TasksPath
 	}
 
-	fullPath := basePath + pathTasks
+	fullPath := filepath.Join(a.GetBasePath(), testFolderPath, pathTasks)
 
 	ts, err := a.GetTasksFromPath(fullPath)
 	if err != nil {

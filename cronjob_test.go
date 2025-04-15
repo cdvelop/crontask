@@ -31,9 +31,9 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 
 	// Create a new CronTaskEngine
 	cron := NewCronTaskEngine(Config{
-		Logger:    t.Log,
-		TasksPath: "",
-		basePath:  testDirPath, // Set the base path for the cron adapter
+		Logger:         t.Log,
+		TasksPath:      "",
+		testFolderPath: testDirPath, // Set the base path for the cron adapter
 	})
 
 	// Use sync.WaitGroup to wait for jobs to complete
