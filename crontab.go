@@ -60,7 +60,7 @@ func new(t time.Duration) *crontab {
 	return c
 }
 
-// AddJob to cron table
+// AddJob to cron table.
 //
 // Returns error if:
 //

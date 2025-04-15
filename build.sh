@@ -40,7 +40,7 @@ export GOOS=windows GOARCH=amd64 CGO_ENABLED=0
 
 # Compilar el binario con optimizaciones directamente al archivo final
 echo "Compilando..."
-go build -ldflags="-s -w" -o "$FINAL_FILE" ./cmd/crontask
+go build -o "$FINAL_FILE" ./cmd/crontask
 
 # Check if build was successful (go build exits with 0 on success)
 if [ $? -eq 0 ]; then
