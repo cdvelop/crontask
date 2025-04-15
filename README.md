@@ -5,7 +5,7 @@ CronTask es un gestor de tareas programadas en Go con soporte para configuració
 ## Instalación
 
 ```bash
-go get github.com/[tu-usuario]/crontask
+go get github.com/cdvelop/crontask
 ```
 
 ## Características principales
@@ -90,7 +90,6 @@ La sintaxis crontab sigue el formato estándar de 5 campos:
 - `5 14,19 * * *` - Dos veces al día, a las 14:05 y a las 19:05
 - `0 */5 * * *` - Cada 5 horas (a las 0:00, 5:00, 10:00, 15:00, 20:00)
 
-
 Para una referencia visual, puedes usar la herramienta: [crontab.guru](https://crontab.guru/)
 
 ## Conversión de días de la semana
@@ -102,6 +101,41 @@ Para una referencia visual, puedes usar la herramienta: [crontab.guru](https://c
 - Viernes: 5
 - Sábado: 6
 - Domingo: 0
+
+
+## Compilación
+
+Para compilar el proyecto, necesitas tener `Go` (versión 1.18 o superior) y `make` instalados en tu sistema.
+
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/cdvelop/crontask.git
+    cd crontask
+    ```
+
+2.  **Compilar para tu plataforma actual:**
+    Este comando limpiará compilaciones anteriores y creará el binario en el directorio `./bin`.
+    ```bash
+    make build
+    ```
+    O simplemente:
+    ```bash
+    make
+    ```
+
+3.  **Compilación cruzada (Cross-compilation):**
+    Este comando compilará el binario para Linux, Windows y macOS (arquitectura amd64) y los dejará en el directorio `./bin`.
+    ```bash
+    make build-all
+    ```
+
+4.  **Limpiar artefactos de compilación:**
+    Para eliminar el directorio `./bin` con los binarios generados:
+    ```bash
+    make clean
+    ```
+
+
 
 ## Agradecimientos
 
