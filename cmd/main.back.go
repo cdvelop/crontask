@@ -12,11 +12,9 @@ import (
 
 func main() {
 
-	cron, err := crontask.NewCronTaskEngine(log.Println)
-	if err != nil {
-		fmt.Println("Error initializing cron:", err)
-		return
-	}
+	cron := crontask.NewCronTaskEngine(crontask.Config{
+		Logger: log.Println,
+	})
 
 	// Schedule tasks from config file if any
 	if err := cron.ScheduleAllTasks(); err != nil {
@@ -24,7 +22,7 @@ func main() {
 	}
 
 	// Add programmatic tasks
-	err = cron.AddJob("* * * * *", func() {
+	err := cron.AddJob("* * * * *", func() {
 		fmt.Println("Ejecutando tarea cada minuto:", time.Now())
 	})
 

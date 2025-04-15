@@ -30,6 +30,21 @@ func (a *wasmAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return nil
 }
 
+func (a *wasmAdapter) GetBasePath() string {
+	// In WASM environments, get the base path from the window.location
+	location := js.Global().Get("window").Get("location")
+	origin := location.Get("origin").String()
+	pathname := location.Get("pathname").String()
+
+	// Get the directory part of the current path
+	lastSlash := strings.LastIndex(pathname, "/")
+	if lastSlash > 0 {
+		pathname = pathname[:lastSlash+1]
+	}
+
+	return origin + pathname
+}
+
 func (a *wasmAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 
 	// If path doesn't start with http or https, assume it's relative to current path

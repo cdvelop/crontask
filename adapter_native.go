@@ -25,6 +25,16 @@ func (a *nativeAdapter) AddJob(schedule string, fn any, args ...any) error {
 	return a.ctab.AddJob(schedule, jobFunc, args...)
 }
 
+func (a *nativeAdapter) GetBasePath() string {
+	// Get the current working directory as the base path
+	dir, err := os.Getwd()
+	if err != nil {
+		// If there's an error, return empty string (current directory)
+		return ""
+	}
+	return dir
+}
+
 func (a *nativeAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 
 	// Read file contents
