@@ -95,15 +95,19 @@ func createYamlFile(t *testing.T, appPath string) string {
 	yamlPath := filepath.Join(testDirPath, filePathDefault)
 	testFilePath := filepath.Join(testDirPath, testFileName)
 
+	// Convert paths to use forward slashes for consistency
+	appPathFixed := filepath.ToSlash(appPath)
+	testFilePathFixed := filepath.ToSlash(testFilePath)
+
 	// Create the YAML content
 	yamlContent := `- name: "create_file"
   schedule: "*/1 * * * *"
-  command: "` + appPath + `"
-  args: "+ ` + testFilePath + ` \"` + testFileContent + `\""
+  command: "` + appPathFixed + `"
+  args: "+ ` + testFilePathFixed + ` \"` + testFileContent + `\""
 - name: "delete_file"
   schedule: "*/1 * * * *"
-  command: "` + appPath + `"
-  args: "- ` + testFilePath + `"
+  command: "` + appPathFixed + `"
+  args: "- ` + testFilePathFixed + `"
 `
 
 	// Create the YAML file

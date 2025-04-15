@@ -67,6 +67,31 @@ func (a *nativeAdapter) GetTasksFromPath(tasksPath string) ([]Tasks, error) {
 }
 
 func (a *nativeAdapter) ExecuteCmd(cmd Task) error {
-	command := exec.Command(cmd.Command, cmd.Args)
+	// Split args string to proper arguments array
+	args := []string{}
+	if cmd.Args != "" {
+		// Simple parsing - this could be improved with proper argument parsing
+		inQuote := false
+		current := ""
+		for _, c := range cmd.Args {
+			if c == '"' || c == '\'' {
+				inQuote = !inQuote
+				continue
+			}
+			if c == ' ' && !inQuote {
+				if current != "" {
+					args = append(args, current)
+					current = ""
+				}
+				continue
+			}
+			current += string(c)
+		}
+		if current != "" {
+			args = append(args, current)
+		}
+	}
+
+	command := exec.Command(cmd.Command, args...)
 	return command.Run()
 }
