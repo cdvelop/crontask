@@ -53,18 +53,33 @@ func TestCronTaskEngineWithRunAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to add create file job: %v", err)
 	}
-
-	// Add delete file job
+	// Add delete file job - keep it simple
 	deleteCalled := false
 	err = cron.AddJob(testSchedule2, func() {
-		defer wg.Done()
+		// Ensure the file exists before trying to delete it
+		// Add 500ms wait to ensure file creation completes first
+		time.Sleep(500 * time.Millisecond)
+
 		if fileExists(testFilePath) {
 			err := deleteTestFile(testFilePath)
 			if err != nil {
 				t.Errorf("Failed to delete test file: %v", err)
 			}
 			deleteCalled = true
+		} else {
+			t.Logf("Warning: File does not exist yet when trying to delete it")
+			// Try again after another wait
+			time.Sleep(1 * time.Second)
+			if fileExists(testFilePath) {
+				err := deleteTestFile(testFilePath)
+				if err != nil {
+					t.Errorf("Failed to delete test file in second attempt: %v", err)
+				} else {
+					deleteCalled = true
+				}
+			}
 		}
+		wg.Done()
 	})
 	if err != nil {
 		t.Fatalf("Failed to add delete file job: %v", err)

@@ -36,6 +36,10 @@ type MyTypeInterface struct {
 	Name string
 }
 
+func (m MyTypeInterface) Bar() string {
+	return m.Name
+}
+
 func TestJobError(t *testing.T) {
 
 	ctab := newCrontab()
