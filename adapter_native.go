@@ -13,7 +13,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-// Adaptador para entornos nativos (no-WASM)
+// Adaptador para entornos nativos (no-WASM).
 type nativeAdapter struct {
 	ctab   *crontab
 	logger *log.Logger
