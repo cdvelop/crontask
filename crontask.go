@@ -85,7 +85,6 @@ func NewCronTaskEngine(configs ...Config) *CronTaskEngine {
 		for _, t := range ts {
 			c.tasks = append(c.tasks, t...)
 		}
-		c.Log("Loaded", len(c.tasks), "tasks")
 
 		// Display loaded tasks
 		for i, task := range c.tasks {

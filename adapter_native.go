@@ -4,24 +4,48 @@ package crontask
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/goccy/go-yaml"
 )
 
-// Inicializador específico para entornos no-WASM
-func newCronAdapter() cronAdapter {
-	return &nativeAdapter{ctab: newCrontab()}
-}
-
 // Adaptador para entornos nativos (no-WASM)
 type nativeAdapter struct {
-	ctab *crontab
+	ctab   *crontab
+	logger *log.Logger
+}
+
+// Inicializador específico para entornos no-WASM
+func newCronAdapter() cronAdapter {
+	// Abrir o crear archivo log.txt para escritura y append
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		// Si hay error al abrir el archivo, usar solo stdout
+		return &nativeAdapter{
+			ctab:   newCrontab(),
+			logger: log.New(os.Stdout, "CRONTASK: ", log.Ldate|log.Ltime),
+		}
+	}
+
+	// Crear un MultiWriter para escribir en stdout y en el archivo
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+
+	// Crear logger con formato y destino configurados
+	logger := log.New(multiWriter, "CRONTASK: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+	return &nativeAdapter{
+		ctab:   newCrontab(),
+		logger: logger,
+	}
 }
 
 func (a *nativeAdapter) Log(args ...any) {
-	fmt.Println(args...)
+	// Usar el logger configurado en lugar de log.Println directamente
+	a.logger.Println(args...)
 }
 
 func (a *nativeAdapter) AddProgramTask(schedule string, fn any, args ...any) error {
@@ -104,19 +128,17 @@ func (a *nativeAdapter) ExecuteCmd(cmd Task) error {
 		expandedArgs[i] = os.ExpandEnv(arg)
 	}
 
-	// Log the exact command being executed after expansion
-	fmt.Printf("Executing command: %s %v\n", command, expandedArgs)
-
 	// Use exec.Command directly
 	execCmd := exec.Command(command, expandedArgs...)
 
 	// Capture command output for better debugging
 	output, err := execCmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Command execution failed: %v\nOutput: %s\n", err, string(output))
+		a.Log("Command execution failed:", err, "Output:", string(output))
 		return err
 	}
 
-	fmt.Printf("Command completed successfully\nOutput: %s\n", string(output))
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	fmt.Printf("*- [%s] %v completed.\n%s\n", currentTime, cmd.Name, string(output))
 	return nil
 }

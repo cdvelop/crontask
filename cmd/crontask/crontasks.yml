@@ -1,0 +1,4 @@
+- name: "Backup Windows" # ejemplo de nombre
+  schedule: "9 14,19 * * *" # Dos veces al día, a las 14:05 y a las 19:05
+  command: "c:\\Program Files\\FreeFileSync\\FreeFileSync.exe"
+  args: "%USERPROFILE%\\SyncWin\\SyncSettings.ffs_batch"

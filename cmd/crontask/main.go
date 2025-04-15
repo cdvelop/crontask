@@ -15,19 +15,9 @@ func main() {
 	// - Load tasks from "crontasks.yml"
 	// - Schedule all tasks
 	// - Log operations
-	cron := crontask.NewCronTaskEngine()
+	crontask.NewCronTaskEngine()
 
-	// Add a programmatic task if needed
-	err := cron.AddTaskSchedule("* * * * *", func() {
-		fmt.Println("Executing programmatic task every minute:", time.Now())
-	})
-
-	if err != nil {
-		fmt.Println("Error adding job:", err)
-		return
-	}
-
-	fmt.Println("Cron server started at", time.Now())
+	fmt.Printf("Cron server started %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	fmt.Println("Press Ctrl+C to stop")
 
 	// Keep the program running

@@ -1,4 +1,0 @@
-- name: "Backup Windows" # test 2
-  schedule: "* * * * *" # every minute
-  command: "c:\\Program Files\\FreeFileSync\\FreeFileSync.exe"
-  args: "%USERPROFILE%\\SyncWin\\SyncSettings.ffs_batch"
